@@ -14,7 +14,7 @@ class EnvironmentCrazy {
 
     protected $local = 'local';
 
-    private $environment;
+    protected $environment;
 
     private $withDotenv = false;
 
