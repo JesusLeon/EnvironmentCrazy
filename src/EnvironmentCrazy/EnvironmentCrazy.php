@@ -4,70 +4,159 @@ namespace EnvironmentCrazy;
 
 class EnvironmentCrazy {
 
-    protected $environment_variable = 'ENVIRONMENT';
+    protected static $environment_variable = 'ENVIRONMENT';
 
-    protected $productive = 'productive';
+    protected static $productive = 'productive';
 
-    protected $private = 'private';
+    protected static $private = 'private';
 
-    protected $staging = 'staging';
+    protected static $staging = 'staging';
 
-    protected $local = 'local';
+    protected static $local = 'local';
 
-    protected $environment;
+    private static $environment;
 
-    private $withDotenv = false;
+    private static $strip_quotes = true;
 
-    function __construct()
+    private static $cast_types = true;
+
+    private static $initiated = false;
+
+    /**
+     * Set the initial value.
+     */
+    private static function init()
     {
-        $this->init();
-    }
+        if(self::$initiated) return;
 
-    public function init()
-    {
-        $this->initDotenv();
+        self::$initiated = true;
 
-        $this->initEnvironment();
+        self::initEnvironment();
     }
 
     /**
      * Set the environment class variable.
      */
-    private function initEnvironment()
+    private static function initEnvironment()
     {
-        $this->environment = $this->get($this->environment_variable, $this->local);
+        self::$environment = static::get(static::$environment_variable, static::$local);
     }
 
     /**
      * @return bool
      */
-    public function isProductive()
+    public static function isProductive()
     {
-        return $this->environment == $this->productive;
+        return static::setIf(static::$productive, true, false);
     }
 
     /**
      * @return bool
      */
-    public function isPrivate()
+    public static function isPrivate()
     {
-        return $this->environment == $this->private;
+        return static::setIf(static::$private, true, false);
     }
 
     /**
      * @return bool
      */
-    public function isStaging()
+    public static function isStaging()
     {
-        return $this->environment == $this->staging;
+        return static::setIf(static::$staging, true, false);
     }
 
     /**
      * @return bool
      */
-    public function isLocal()
+    public static function isLocal()
     {
-        return $this->environment == $this->local;
+        return static::setIf(static::$local, true, false);
+    }
+
+    /**
+     * @param $value
+     * @param null $default
+     * @return null
+     */
+    public static function setIfProductive($value, $default = null)
+    {
+        return static::setIf(static::$productive, $value, $default);
+    }
+
+    /**
+     * @param $value
+     * @param null $default
+     * @return null
+     */
+    public static function setIfPrivate($value, $default = null)
+    {
+        return static::setIf(static::$private, $value, $default);
+    }
+
+    /**
+     * @param $value
+     * @param null $default
+     * @return null
+     */
+    public static function setIfStaging($value, $default = null)
+    {
+        return static::setIf(static::$staging, $value, $default);
+    }
+
+    /**
+     * @param $value
+     * @param null $default
+     * @return null
+     */
+    public static function setIfLocal($value, $default = null)
+    {
+        return static::setIf(static::$local, $value, $default);
+    }
+
+    /**
+     * @param $value
+     * @param null $default
+     * @return null
+     */
+    public static function setIfElse($value, $default = null)
+    {
+        return static::setIf('else', $value, $default);
+    }
+
+    /**
+     * @param $environment
+     * @param $value
+     * @param null $default
+     * @return null
+     */
+    public static function setIf($environment, $value = null, $default = null)
+    {
+        self::init();
+
+        if(is_string($environment) && ! is_null($value))
+        {
+            if($environment == self::$environment || $environment == 'else')
+            {
+                return $value;
+            }
+
+            if( ! is_null($default)) return $default;
+
+            return null;
+        }
+
+        if(array_key_exists(self::$environment, (array) $environment))
+        {
+            return $environment[self::$environment];
+        }
+
+        if(array_key_exists('else', (array) $environment))
+        {
+            return $environment['else'];
+        }
+
+        return null;
     }
 
     /**
@@ -75,17 +164,34 @@ class EnvironmentCrazy {
      *
      * Borrowed from Illuminate/Foundation/helpers.php
      *
-     * @param  string  $key
-     * @param  mixed   $default
+     * @param  string $key
+     * @param  mixed $default
      * @return mixed
      */
-    function get($key=null, $default = null)
+    public static function get($key = null, $default = null)
     {
-        if(is_null($key)) return $this->environment;
+        self::init();
+
+        if(is_null($key)) return self::$environment;
 
         $value = getenv($key);
 
         if($value === false) return $default;
+
+        $value = self::_cast_types($value);
+
+        $value = self::_strip_quotes($value);
+
+        return $value;
+    }
+
+    /**
+     * @param $value
+     * @return bool|null|string
+     */
+    private static function _cast_types($value)
+    {
+        if( ! self::$cast_types) return $value;
 
         switch (strtolower($value))
         {
@@ -106,6 +212,17 @@ class EnvironmentCrazy {
                 return '';
         }
 
+        return $value;
+    }
+
+    /**
+     * @param $value
+     * @return string
+     */
+    private static function _strip_quotes($value)
+    {
+        if( ! self::$strip_quotes) return $value;
+
         if (
             ($value != '' && strpos('"', $value) === 0)
             && (string) $value === substr('"', -strlen($value))
@@ -118,104 +235,19 @@ class EnvironmentCrazy {
     }
 
     /**
-     * @param $value
-     * @return null
+     * @param bool $value
      */
-    public function setIfProductive($value)
+    public static function castTypes($value = true)
     {
-        return $this->setIf($this->productive, $value);
+        self::$cast_types = $value;
     }
 
     /**
-     * @param $value
-     * @return null
+     * @param bool $value
      */
-    public function setIfPrivate($value)
+    public static function stripQuotes($value = true)
     {
-        return $this->setIf($this->private, $value);
-    }
-
-    /**
-     * @param $value
-     * @return null
-     */
-    public function setIfStaging($value)
-    {
-        return $this->setIf($this->staging, $value);
-    }
-
-    /**
-     * @param $value
-     * @return null
-     */
-    public function setIfLocal($value)
-    {
-        return $this->setIf($this->local, $value);
-    }
-
-    /**
-     * @param $value
-     * @return null
-     */
-    public function setIfElse($value)
-    {
-        return $this->setIf('else', $value);
-    }
-
-    /**
-     * @param $environment
-     * @param $value
-     * @return null
-     */
-    public function setIf($environment, $value=null)
-    {
-        if(is_string($environment) && ! is_null($value))
-        {
-            if($environment == $this->environment || $environment == 'else')
-            {
-                return $value;
-            }
-
-            return null;
-        }
-
-        if(array_key_exists($this->environment, (array) $environment))
-        {
-            return $environment[$this->environment];
-        }
-
-        if(array_key_exists('else', (array) $environment))
-        {
-            return $environment['else'];
-        }
-
-        return null;
-    }
-
-    /**
-     * If present, initialize vlucas/dotenv.
-     */
-    private function initDotenv()
-    {
-        $this->withDotenv = class_exists('Dotenv');
-
-        if($this->withDotenv) \Dotenv::load(dirname(dirname(__DIR__)));
-    }
-
-    /**
-     * Make Dotenv immutable. This means that once set, an environment variable cannot be overridden.
-     */
-    public function makeImmutable()
-    {
-        if($this->withDotenv) \Dotenv::makeImmutable();
-    }
-
-    /**
-     * Make Dotenv mutable. Environment variables will act as, well, variables.
-     */
-    public function makeMutable()
-    {
-        if($this->withDotenv) \Dotenv::makeMutable();
+        self::$strip_quotes = $value;
     }
 
 }
