@@ -8,7 +8,7 @@ EnvironmentCrazy is a practical class that simplifies working with your differen
 ##Before:
 ###The (unfortunate) usual way.
 
-[ ! ] No validations. Too must writing. Missing scopes. String-based validations leave space for catastrofic errors.
+[ ! ] No validations. Too much writing. Missing scopes. String-based validations leave space for catastrofic errors.
 
 ```php
 // No validations. Missing scopes:
