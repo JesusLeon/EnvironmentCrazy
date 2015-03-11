@@ -99,4 +99,5 @@ $token = EnvironmentCrazy::get('API_TOKEN', 'optional-default-value-if-the-varia
 EnvironmentCrazy::castTypes(false); // or true, by default.
 
 // and avoid striping quote values '"'
+EnvironmentCrazy::stripQuotes(false); // or true, by default.
 ```
