@@ -2,8 +2,8 @@
 
 namespace EnvironmentCrazy;
 
-class EnvironmentCrazy {
-
+class EnvironmentCrazy
+{
     protected static $environment_variable = 'ENVIRONMENT';
 
     protected static $productive = 'productive';
@@ -27,7 +27,9 @@ class EnvironmentCrazy {
      */
     private static function init()
     {
-        if(self::$initiated) return;
+        if (self::$initiated) {
+            return;
+        }
 
         self::$initiated = true;
 
@@ -77,6 +79,7 @@ class EnvironmentCrazy {
     /**
      * @param $value
      * @param null $default
+     *
      * @return null
      */
     public static function setIfProductive($value, $default = null)
@@ -87,6 +90,7 @@ class EnvironmentCrazy {
     /**
      * @param $value
      * @param null $default
+     *
      * @return null
      */
     public static function setIfPrivate($value, $default = null)
@@ -97,6 +101,7 @@ class EnvironmentCrazy {
     /**
      * @param $value
      * @param null $default
+     *
      * @return null
      */
     public static function setIfStaging($value, $default = null)
@@ -107,6 +112,7 @@ class EnvironmentCrazy {
     /**
      * @param $value
      * @param null $default
+     *
      * @return null
      */
     public static function setIfLocal($value, $default = null)
@@ -117,6 +123,7 @@ class EnvironmentCrazy {
     /**
      * @param $value
      * @param null $default
+     *
      * @return null
      */
     public static function setIfElse($value, $default = null)
@@ -128,35 +135,34 @@ class EnvironmentCrazy {
      * @param $environment
      * @param $value
      * @param null $default
+     *
      * @return null
      */
     public static function setIf($environment, $value = null, $default = null)
     {
         self::init();
 
-        if(is_string($environment) && ! is_null($value))
-        {
-            if($environment == self::$environment || $environment == 'else')
-            {
+        if (is_string($environment) && !is_null($value)) {
+            if ($environment == self::$environment || $environment == 'else') {
                 return $value;
             }
 
-            if( ! is_null($default)) return $default;
+            if (!is_null($default)) {
+                return $default;
+            }
 
-            return null;
+            return;
         }
 
-        if(array_key_exists(self::$environment, (array) $environment))
-        {
+        if (array_key_exists(self::$environment, (array) $environment)) {
             return $environment[self::$environment];
         }
 
-        if(array_key_exists('else', (array) $environment))
-        {
+        if (array_key_exists('else', (array) $environment)) {
             return $environment['else'];
         }
 
-        return null;
+        return;
     }
 
     /**
@@ -164,19 +170,24 @@ class EnvironmentCrazy {
      *
      * Borrowed from Illuminate/Foundation/helpers.php
      *
-     * @param  string $key
-     * @param  mixed $default
+     * @param string $key
+     * @param mixed  $default
+     *
      * @return mixed
      */
     public static function get($key = null, $default = null)
     {
         self::init();
 
-        if(is_null($key)) return self::$environment;
+        if (is_null($key)) {
+            return self::$environment;
+        }
 
         $value = getenv($key);
 
-        if($value === false) return $default;
+        if ($value === false) {
+            return $default;
+        }
 
         $value = self::_cast_types($value);
 
@@ -187,14 +198,16 @@ class EnvironmentCrazy {
 
     /**
      * @param $value
+     *
      * @return bool|null|string
      */
     private static function _cast_types($value)
     {
-        if( ! self::$cast_types) return $value;
+        if (!self::$cast_types) {
+            return $value;
+        }
 
-        switch (strtolower($value))
-        {
+        switch (strtolower($value)) {
             case 'true':
             case '(true)':
                 return true;
@@ -205,7 +218,7 @@ class EnvironmentCrazy {
 
             case 'null':
             case '(null)':
-                return null;
+                return;
 
             case 'empty':
             case '(empty)':
@@ -217,17 +230,19 @@ class EnvironmentCrazy {
 
     /**
      * @param $value
+     *
      * @return string
      */
     private static function _strip_quotes($value)
     {
-        if( ! self::$strip_quotes) return $value;
+        if (!self::$strip_quotes) {
+            return $value;
+        }
 
         if (
             ($value != '' && strpos('"', $value) === 0)
             && (string) $value === substr('"', -strlen($value))
-        )
-        {
+        ) {
             return substr($value, 1, -1);
         }
 
@@ -249,5 +264,4 @@ class EnvironmentCrazy {
     {
         self::$strip_quotes = $value;
     }
-
 }
